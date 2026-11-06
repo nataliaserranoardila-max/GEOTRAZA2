@@ -1,0 +1,7 @@
+# Colab ya trae torch, torchvision, numpy, opencv, matplotlib, pandas.
+transformers>=4.40
+timm>=0.9.12
+fastapi>=0.110
+uvicorn>=0.27
+python-multipart>=0.0.9
+tabulate>=0.9

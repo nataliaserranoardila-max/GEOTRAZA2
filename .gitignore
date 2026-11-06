@@ -1,0 +1,15 @@
+# Entorno y cachés
+.venv/
+venv/
+__pycache__/
+*.pyc
+.ipynb_checkpoints/
+.vscode/
+
+# Datos crudos de Kaggle (se descargan con instalar.bat o prepare_data.py --download)
+data/raw/
+kaggle.json
+
+# Pesos: pesan más de 100 MB, se publican en la sección Releases del repositorio
+models/weights/*.pt
+*.zip
