@@ -1,0 +1,27 @@
+{
+  "n_images": 100,
+  "image_sizes": [
+    "500x500"
+  ],
+  "class_pixel_fraction": {
+    "Fondo": 0.12851568,
+    "Área Caminable": 0.08196312,
+    "Área Construida": 0.5105694,
+    "Zona Verde": 0.14229556,
+    "Carretera": 0.13665624
+  },
+  "overlap_mean": {
+    "sin_etiqueta": 0.12851568000000002,
+    "una_etiqueta": 0.8537769199999999,
+    "solapadas": 0.017707399999999998
+  },
+  "instances_per_image_mean": {
+    "Área Construida": 14.64,
+    "Zona Verde": 9.02
+  },
+  "splits": {
+    "train": 70,
+    "val": 15,
+    "test": 15
+  }
+}

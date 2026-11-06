@@ -1,0 +1,43 @@
+{
+  "Mask2Former": {
+    "native": {
+      "split_erode": 0,
+      "region_min_area": 64,
+      "score_mode": "mean"
+    },
+    "tta": {
+      "split_erode": 3,
+      "region_min_area": 64,
+      "score_mode": "mean",
+      "scales": [
+        1.0,
+        1.5
+      ],
+      "sigma": 0,
+      "bias": {
+        "0": 0.0,
+        "1": 1.25
+      }
+    }
+  },
+  "EfficientPS": {
+    "native": {
+      "split_erode": 0,
+      "region_min_area": 64,
+      "score_mode": "mean"
+    },
+    "tta": {
+      "split_erode": 6,
+      "region_min_area": 64,
+      "score_mode": "mean",
+      "scales": [
+        1.0,
+        1.5
+      ],
+      "sigma": 0,
+      "bias": {
+        "0": 0.0
+      }
+    }
+  }
+}
