@@ -1,0 +1,263 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>GEOTRAZA · Agencia Orbital Chicamocha</title>
+  <link rel="icon" href="/static/favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Archivo:ital,wdth,wght@0,62..125,100..900;1,62..125,100..900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+<!-- ============ Membrete de la misión ============ -->
+<header class="mast">
+  <a class="brand" href="#mision" aria-label="GEOTRAZA, inicio">
+    <img src="/static/logo.svg" alt="" width="46" height="46">
+    <span>
+      <span class="wordmark">GEOTRAZA</span>
+      <span class="agency" id="agency">Agencia Orbital Chicamocha</span>
+    </span>
+  </a>
+  <div class="mast-center">
+    <span class="mission-code" id="missioncode">Misión GEOTRAZA-01</span>
+    <span class="mission-desc">Segmentación panóptica de imágenes satelitales</span>
+  </div>
+  <div class="mast-status" id="status" aria-live="polite">
+    <span class="pill pill-wait">Conectando…</span>
+  </div>
+</header>
+<div class="classband" aria-hidden="true"><i class="b1"></i><i class="b2"></i><i class="b3"></i><i class="b4"></i></div>
+
+<nav class="nav" aria-label="Secciones">
+  <a href="#mision">Misión</a>
+  <a href="#datos">Datos</a>
+  <a href="#entrenamiento">Entrenamiento</a>
+  <a href="#analisis">Análisis en vivo</a>
+  <a href="#resultados">Resultados</a>
+</nav>
+
+<!-- ============ Misión ============ -->
+<section class="sec hero" id="mision">
+  <p class="kicker" id="kicker">Agencia Orbital Chicamocha · Misión GEOTRAZA-01</p>
+  <h2 class="hero-title">Cartografía automatizada desde la órbita</h2>
+  <p class="lead">Dos redes de segmentación panóptica leen imágenes satelitales y trazan, píxel a píxel y región por región, el mapa de una ciudad: dónde se camina, dónde se construyó, dónde hay vegetación y por dónde circulan los vehículos.</p>
+  <figure class="hero-swipe" id="heroswipe" hidden>
+    <div class="hs-frame">
+      <img id="hsbase" alt="Escena satelital de prueba">
+      <img id="hslab" alt="Misma escena con el ground truth superpuesto">
+      <div class="hs-line" id="hsline"><span>Imagen</span><span>Ground truth</span></div>
+      <input type="range" id="hsrange" min="0" max="100" value="0" step="0.1" aria-label="Comparar imagen y ground truth">
+    </div>
+    <figcaption><span id="hsname"></span> · arrastra para comparar la imagen con su ground truth</figcaption>
+  </figure>
+  <div class="legend-static" id="herolegend"></div>
+</section>
+<div class="hero-kpis" id="herokpis"></div>
+<section class="crew-strip" id="crew"></section>
+
+<!-- ============ Datos ============ -->
+<section class="sec" id="datos">
+  <div class="sec-head">
+    <h2 class="sec-title">Datos de entrada</h2>
+    <p class="lead">Dataset de Kaggle <em>Reto 1 · Cartografía Automatizada</em>: recortes satelitales con máscaras de referencia para las cuatro clases.</p>
+  </div>
+  <div class="data-grid">
+    <div class="panel" id="datafacts"><p class="hint">Ejecuta data/prepare_data.py para ver las estadísticas del dataset.</p></div>
+    <div class="panel" id="classdist"></div>
+  </div>
+  <div class="panel pipeline">
+    <h3>Preprocesamiento</h3>
+    <ol class="steps">
+      <li><b>Lectura</b><span>Imagen RGB y GT multietiqueta de H×W×4 binarizado.</span></li>
+      <li><b>Solapes</b><span>Un píxel con varias etiquetas queda con la visible desde arriba: Zona Verde, Carretera, Caminable, Construida.</span></li>
+      <li><b>Instancias</b><span>Manzanas y zonas verdes se separan por regiones conexas; carretera y andén son regiones continuas.</span></li>
+      <li><b>División</b><span>70 / 15 / 15 para entrenamiento, validación y prueba, con semilla fija.</span></li>
+      <li><b>Aumento</b><span>Escala 0.75–1.5, recorte 512 px, 8 rotaciones y espejos, color y desenfoque.</span></li>
+    </ol>
+  </div>
+  <div class="gallery-fig" id="gtfigs"></div>
+</section>
+
+<!-- ============ Entrenamiento ============ -->
+<section class="sec" id="entrenamiento">
+  <div class="sec-head">
+    <h2 class="sec-title">Entrenamiento</h2>
+    <p class="lead">Transfer learning en Google Colab con GPU. Se guarda el modelo con mejor (mIoU + F1 + mAP) / 3 en validación.</p>
+  </div>
+  <div class="arch-grid" id="archs"></div>
+  <div class="bench-grid" id="traincurves"><p class="hint">Sin historial de entrenamiento en outputs/.</p></div>
+  <div class="gallery-fig" id="augfig"></div>
+</section>
+
+<!-- ============ Análisis en vivo ============ -->
+<section class="sec sec-tight" id="analisis">
+  <div class="sec-head">
+    <h2 class="sec-title">Análisis en vivo</h2>
+    <p class="lead">Sube una escena nueva o elige una del archivo: ambos modelos la segmentan y, si hay ground truth, se calculan las métricas al instante.</p>
+  </div>
+</section>
+
+<main class="deck">
+  <!-- ============ Panel de entrada ============ -->
+  <aside class="rail" aria-label="Entrada">
+    <section class="block">
+      <h2>Nueva imagen</h2>
+      <label class="drop" id="drop" tabindex="0">
+        <input type="file" id="file" accept="image/*" hidden>
+        <svg viewBox="0 0 48 48" aria-hidden="true"><path d="M24 31V13m0 0-7 7m7-7 7 7M10 33v4h28v-4" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <span><strong>Suelta una imagen satelital</strong> o haz clic para elegirla</span>
+        <small>PNG, JPG o TIFF · RGB</small>
+      </label>
+      <form class="url-row" id="urlform">
+        <input type="url" id="imgurl" placeholder="o pega el enlace de una imagen" aria-label="Enlace de una imagen satelital">
+        <button class="btn" type="submit">Analizar</button>
+      </form>
+      <label class="gt-opt">
+        <input type="file" id="gtfile" accept=".npy" hidden>
+        <span id="gtlabel">Adjuntar ground truth (.npy, opcional)</span>
+      </label>
+    </section>
+
+    <section class="block">
+      <h2>Modo de inferencia</h2>
+      <div class="seg-ctrl" role="radiogroup" aria-label="Modo de inferencia">
+        <button role="radio" aria-checked="true" data-mode="native">Nativo</button>
+        <button role="radio" aria-checked="false" data-mode="tta">TTA ×8</button>
+      </div>
+      <p class="hint" id="modehint">Cabeza panóptica propia de cada modelo. Una pasada por imagen.</p>
+      <label class="scale-row">Escala de entrada
+        <select id="scale" aria-label="Escala de entrada">
+          <option value="0.5">0.5× (imagen muy cercana)</option>
+          <option value="0.75">0.75×</option>
+          <option value="1" selected>1× (como el entrenamiento)</option>
+          <option value="1.5">1.5×</option>
+          <option value="2">2× (imagen lejana)</option>
+        </select>
+      </label>
+      <p class="hint">Para imágenes de otras fuentes: si los carros se ven mucho más grandes o pequeños que en el dataset, ajusta la escala.</p>
+    </section>
+
+    <section class="block grow">
+      <div class="block-head">
+        <h2>Archivo de escenas</h2>
+        <select id="filter" aria-label="Filtrar escenas">
+          <option value="test">Test (con GT)</option>
+          <option value="externa">Pruebas externas</option>
+          <option value="val">Validación</option>
+          <option value="sin etiqueta">Sin etiqueta</option>
+          <option value="train">Entrenamiento</option>
+          <option value="all">Todas</option>
+        </select>
+      </div>
+      <div class="gallery" id="gallery"><p class="hint">Cargando escenas…</p></div>
+    </section>
+  </aside>
+
+  <!-- ============ Visor ============ -->
+  <section class="viewer" aria-label="Visor">
+    <div class="toolbar">
+      <div class="tabs" role="tablist" id="sources"></div>
+      <div class="tabs tabs-sm" role="tablist" id="views">
+        <button role="tab" data-view="semantic" aria-selected="true">Semántica</button>
+        <button role="tab" data-view="panoptic" aria-selected="false">Panóptica</button>
+        <button role="tab" data-view="confidence" aria-selected="false">Confianza</button>
+        <button role="tab" data-view="detections" aria-selected="false">Detecciones</button>
+        <button role="tab" data-view="errors" aria-selected="false" disabled title="Requiere ground truth">Errores vs GT</button>
+      </div>
+    </div>
+
+    <div class="stage-wrap">
+      <div class="stage" id="stage">
+        <div class="empty" id="empty">
+          <svg viewBox="0 0 120 120" aria-hidden="true">
+            <circle cx="60" cy="60" r="52" fill="none" stroke="currentColor" stroke-dasharray="3 6"/>
+            <circle cx="60" cy="60" r="30" fill="none" stroke="currentColor" stroke-dasharray="2 5"/>
+            <path d="M60 4v20M60 96v20M4 60h20M96 60h20" stroke="currentColor"/>
+          </svg>
+          <p>Sin escena en el visor.</p>
+          <p class="hint">Elige una escena del archivo o sube una imagen para segmentarla con ambos modelos.</p>
+        </div>
+        <div class="frame" id="frame" hidden>
+          <img id="base" alt="Escena satelital de entrada">
+          <canvas id="under"></canvas>
+          <canvas id="over"></canvas>
+          <div class="scan" id="scan"></div>
+          <div class="divider" id="divider"><span id="lblL"></span><span id="lblR"></span></div>
+          <input type="range" id="swipe" min="0" max="100" value="50" step="0.1" aria-label="Deslizador de comparación">
+        </div>
+        <div class="busy" id="busy" hidden><div class="orbit"></div><p id="busytext">Procesando escena…</p></div>
+      </div>
+      <div class="readout" id="readout">Pasa el cursor sobre la escena para leer cada píxel.</div>
+    </div>
+
+    <div class="layers">
+      <div class="legend" id="legend"></div>
+      <label class="opacity">Opacidad
+        <input type="range" id="alpha" min="0" max="100" value="60">
+      </label>
+      <div class="actions">
+        <button class="btn" id="dlimg" disabled>Guardar vista (PNG)</button>
+        <button class="btn" id="dljson" disabled>Guardar reporte (JSON)</button>
+      </div>
+    </div>
+  </section>
+</main>
+
+<!-- ============ Telemetría de la escena ============ -->
+<section class="telemetry" id="telemetry" hidden>
+  <div class="tele-head">
+    <h2>Telemetría de la escena</h2>
+    <p id="scenemeta" class="hint"></p>
+  </div>
+  <div class="tele-grid" id="telegrid"></div>
+  <div class="agree" id="agree"></div>
+</section>
+
+<!-- ============ Banco de pruebas ============ -->
+<section class="sec" id="resultados">
+  <div class="sec-head">
+    <h2 class="sec-title">Resultados en el split de prueba</h2>
+    <p class="lead">15 imágenes que ningún modelo vio durante el entrenamiento ni el ajuste.</p>
+  </div>
+</section>
+<section class="bench" id="bench">
+  <div class="tele-head">
+    <h2>Tabla comparativa</h2>
+    <p class="hint">Resultados de la evaluación final de cada modelo (outputs/metrics_*_test_*.json). Mínimos del taller: IoU ≥ 0.70 · mAP ≥ 0.50 · F1 ≥ 0.80. Protocolo principal: píxeles sin anotar ignorados (void); a la derecha, el protocolo estricto.</p>
+  </div>
+  <div id="benchbody"><p class="hint">Sin resultados de test todavía. Copia la carpeta outputs/ generada en Colab.</p></div>
+</section>
+
+<section class="bench" id="protocolo">
+  <div class="tele-head"><h2>Protocolos de evaluación</h2></div>
+  <div class="proto">
+    <div><h3>Void (principal)</h3><p>Los píxeles que el ground truth dejó sin anotar no cuentan como acierto ni como error, como en Cityscapes y ADE20K. En este dataset hay construcciones visibles sin anotar, por lo que "sin etiqueta" no siempre significa "ninguna clase".</p></div>
+    <div><h3>Estricto</h3><p>El fondo sin anotar es una clase más: si un modelo marca como construido un galpón que nadie anotó, cuenta como error. Se reporta siempre al lado del principal.</p></div>
+  </div>
+</section>
+
+<section class="bench" id="ajuste">
+  <div class="tele-head">
+    <h2>Ajuste del post-procesamiento</h2>
+    <p class="hint">Elegido solo con el split de validación; el de prueba nunca se usa para decidir nada.</p>
+  </div>
+  <div id="tuning"><p class="hint">Ejecuta tune_postprocess.py para ver el antes y después.</p></div>
+</section>
+
+<section class="bench" id="evidencias">
+  <div class="tele-head"><h2>Evidencias</h2><p class="hint">Matrices de confusión y ejemplos cualitativos generados con report_figures.py. Clic para ampliar.</p></div>
+  <div class="gallery-fig" id="evfigs"><p class="hint">Ejecuta report_figures.py para generar las figuras.</p></div>
+  <div class="gallery-fig wide" id="evwide"></div>
+</section>
+
+<dialog class="lightbox" id="lightbox"><img alt=""><button class="btn" id="lbclose">Cerrar</button></dialog>
+
+<footer class="foot">
+  <span id="footteam"></span>
+</footer>
+
+<script src="/static/js/app.js"></script>
+</body>
+</html>
